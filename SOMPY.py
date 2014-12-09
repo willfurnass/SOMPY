@@ -532,8 +532,8 @@ class SOM(object):
         # Here it finds BMUs for chunk of data in parallel
         t_temp = time()
         b = Parallel(n_jobs=njb, pre_dispatch='3 * n_jobs')(
-            delayed(self.chunk_based_bmu_find)
-                (self, x[i * dlen // njb:min((i + 1) * dlen // njb, dlen)], y, Y2)
+            delayed(chunk_based_bmu_find)
+                (x[i * dlen // njb:min((i + 1) * dlen // njb, dlen)], y, Y2)
              for i in xrange(njb))
 
         # print 'bmu finding: {} seconds '.format(round(time() - t_temp, 3))
@@ -587,33 +587,6 @@ class SOM(object):
         # setattr(som, 'codebook', New_Codebook)
         return np.around(New_Codebook, decimals=6)
 
-    def chunk_based_bmu_find(self, x, y, Y2):
-        """We will call this function in parallel for different number of jobs.
-        """
-        dim = x.shape[1]
-        dlen = x.shape[0]
-        nnodes = y.shape[0]
-        bmu = np.empty((dlen, 2))
-        # It seems that smal batches for large dlen is really faster.  That is
-        # because of ddata in loops and n_jobs. for large data it slows down due
-        # to memory needs in parallel
-        blen = min(50, dlen)
-        i0 = 0
-        d = None
-        t = time()
-        while i0 + 1 <= dlen:
-            Low = (i0)
-            High = min(dlen, i0+blen)
-            i0 = i0+blen
-            ddata = x[Low:High+1]
-            d = np.dot(y, ddata.T)
-            d *= -2
-            d += Y2.reshape(nnodes, 1)
-            bmu[Low:High+1, 0] = np.argmin(d, axis=0)
-            bmu[Low:High+1, 1] = np.min(d, axis=0)
-            del ddata
-            d = None
-        return bmu
 
     def batchtrain(self, njob=1, phase=None, shared_memory='no', verbose='on'):
         """Batch training which is called for rought training as well as
@@ -1092,6 +1065,35 @@ class SOM(object):
                 for i in range(eigvec.shape[0]):
                     codebook[j, :] = codebook[j, :] + coord[j, i] & eigvec[i, :]
             return np.around(codebook, decimals=6)
+
+
+def chunk_based_bmu_find(x, y, Y2):
+    """We will call this function in parallel for different number of jobs.
+    """
+    dim = x.shape[1]
+    dlen = x.shape[0]
+    nnodes = y.shape[0]
+    bmu = np.empty((dlen, 2))
+    # It seems that small batches for large dlen is really faster.  That is
+    # because of ddata in loops and n_jobs. for large data it slows down due
+    # to memory needs in parallel
+    blen = min(50, dlen)
+    i0 = 0
+    d = None
+    t = time()
+    while i0 + 1 <= dlen:
+        Low = (i0)
+        High = min(dlen, i0 + blen)
+        i0 = i0+blen
+        ddata = x[Low:High + 1]
+        d = np.dot(y, ddata.T)
+        d *= -2
+        d += Y2.reshape(nnodes, 1)
+        bmu[Low:High + 1, 0] = np.argmin(d, axis=0)
+        bmu[Low:High + 1, 1] = np.min(d, axis=0)
+        del ddata
+        d = None
+    return bmu
 
 
 def normalize(data, method='var'):
