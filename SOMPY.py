@@ -16,16 +16,14 @@ import scipy.spatial as spdist
 import tables as tb
 import timeit
 import sys
-from sklearn.externals.joblib import Parallel, delayed
-from sklearn.externals.joblib import load, dump
+from scikits.learn.externals.joblib import Parallel, delayed, load, dump
 import tempfile
 import shutil
 import os
 import itertools
 from scipy.sparse import csr_matrix
-from sklearn.decomposition import RandomizedPCA
-from sklearn.decomposition import PCA
-from sklearn import neighbors
+from scikits.learn.decomposition import RandomizedPCA, PCA
+from scikits.learn import neighbors
 from matplotlib.colors import LogNorm
 from matplotlib import cm
 import matplotlib
@@ -324,7 +322,7 @@ class SOM(object):
         return Predicted_values
 
     def find_K_nodes(self, data, K=5):
-        from sklearn.neighbors import NearestNeighbors
+        from scikits.learn.neighbors import NearestNeighbors
         # We find the k most similar nodes to the input vector
         codebook = getattr(self, 'codebook')
         neigh = NearestNeighbors(n_neighbors=K)
@@ -348,7 +346,7 @@ class SOM(object):
         return out.astype(int)
 
     def cluster(self, method='Kmeans', n_clusters=8):
-        import sklearn.cluster as clust
+        import scikits.learn.cluster as clust
         km = clust.KMeans(n_clusters=n_clusters)
         labels = km.fit_predict(denormalize_by(self.data_raw, self.codebook,
                                                n_method='var'))
