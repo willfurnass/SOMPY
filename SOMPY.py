@@ -145,7 +145,7 @@ class SOM(object):
         cd = getattr(self, 'nnodes')
         UD2 = np.zeros((cd, cd))
         for i in range(cd):
-            UD2[i, :] = grid_dist(self, i).reshape(1, cd)
+            UD2[i, :] = self.grid_dist(i).reshape(1, cd)
         self.UD2 = UD2
 
     def set_algorithm(self, initmethod='pca', algtype='batch',
@@ -172,13 +172,14 @@ class SOM(object):
         mapsize = getattr(self, 'mapsize')
         if np.min(mapsize) > 1:
             if pack == 'No':
-                view_2d(self, text_size, which_dim=which_dim, what=what)
+                self.view_2d(text_size, which_dim=which_dim, what=what)
             else:
-                view_2d_Pack(self, text_size, which_dim=which_dim, what=what,
-                             save=save, save_dir=save_dir, grid=grid, text=text)
+                self.view_2d_Pack(text_size, which_dim=which_dim, what=what,
+                                  save=save, save_dir=save_dir, grid=grid,
+                                  text=text)
 
         elif np.min(mapsize) == 1:
-            view_1d(self, text_size, which_dim=which_dim, what=what)
+            self.view_1d(text_size, which_dim=which_dim, what=what)
 
     def init_map(self):
         """Initialize map codebook: weight vectors of SOM."""
@@ -196,7 +197,7 @@ class SOM(object):
                                                                      'dim'))))
         elif getattr(self, 'initmethod') == 'pca':
             # It is based on two largest eigenvalues of correlation matrix
-            codebooktmp = lininit(self)
+            codebooktmp = self.lininit()
             setattr(self, 'codebook', codebooktmp)
         else:
             print 'Please select a corect initialization method.'
@@ -231,7 +232,7 @@ class SOM(object):
         # Rough training
         if verbose == 'on':
             print
-        batchtrain(self, njob=n_job, phase='rough', shared_memory='no',
+        self.batchtrain(njob=n_job, phase='rough', shared_memory='no',
                    verbose=verbose)
         if verbose == 'on':
             print
@@ -239,7 +240,7 @@ class SOM(object):
         # Finetuning
         if verbose == 'on':
             print
-        batchtrain(self, njob=n_job, phase='finetune', shared_memory='no',
+        self.batchtrain(njob=n_job, phase='finetune', shared_memory='no',
                    verbose=verbose)
         err = np.mean(getattr(self, 'bmu')[1])
         if verbose == 'on':
@@ -533,14 +534,14 @@ class SOM(object):
         # Here it finds BMUs for chunk of data in parallel
         t_temp = time()
         b = Parallel(n_jobs=njb, pre_dispatch='3 * n_jobs')(
-            delayed(chunk_based_bmu_find)
+            delayed(self.chunk_based_bmu_find)
                 (self, x[i * dlen // njb:min((i + 1) * dlen // njb, dlen)], y, Y2)
              for i in xrange(njb))
 
-        # print 'bmu finding: %f seconds ' %round(time() - t_temp, 3)
+        # print 'bmu finding: {} seconds '.format(round(time() - t_temp, 3))
         t1 = time()
         bmu = np.asarray(list(itertools.chain(*b))).T
-        # print 'bmu to array: %f seconds' %round(time() - t1, 3)
+        # print 'bmu to array: {} seconds'.format(round(time() - t1, 3))
         del b
         return bmu
 
@@ -726,7 +727,7 @@ class SOM(object):
             print 'lattice not found! Lattice as hexa was set'
 
         if lattice == 'rect':
-            return rect_dist(self, bmu_ind)
+            return self.rect_dist(bmu_ind)
         elif lattice == 'hexa':
             try:
                 msize = getattr(self, 'mapsize')
