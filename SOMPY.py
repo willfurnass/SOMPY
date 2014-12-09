@@ -183,13 +183,12 @@ class SOM(object):
                          (getattr(self, 'nnodes'), 1))
             mx = np.tile(np.max(getattr(self, 'data'), axis=0),
                          (getattr(self, 'nnodes'), 1))
-            setattr(self, 'codebook', mn + (mx - mn) *
+            self.codebook = mn + (mx - mn) * \
                     (np.random.rand(getattr(self, 'nnodes'), getattr(self,
-                                                                     'dim'))))
+                                                                     'dim')))
         elif getattr(self, 'initmethod') == 'pca':
             # It is based on two largest eigenvalues of correlation matrix
-            codebooktmp = self.lininit()
-            setattr(self, 'codebook', codebooktmp)
+            self.codebook = self.lininit()
         else:
             print 'Please select a corect initialization method.'
             print 'Set a correct one in SOM. ' + \
@@ -343,7 +342,7 @@ class SOM(object):
         km = clust.KMeans(n_clusters=n_clusters)
         labels = km.fit_predict(denormalize_by(self.data_raw, self.codebook,
                                                n_method='var'))
-        setattr(self, 'cluster_labels', labels)
+        self.cluster_labels = labels
         return labels
 
     def hit_map(self, data=None):
@@ -577,7 +576,7 @@ class SOM(object):
         Nom = None
         Denom = None
         # assert (New_Codebook.shape == (nnodes, dim))
-        # setattr(som, 'codebook', New_Codebook)
+        # som.codebook = New_Codebook
         return np.around(New_Codebook, decimals=6)
 
 
@@ -670,9 +669,9 @@ class SOM(object):
             if verbose == 'on':
                 print "epoch: {} ---> elapsed time:  {}, quantization error: {}".format(
                     i + 1, round(time() - t1, 3), np.mean(np.sqrt(bmu[1] + X2)))
-        setattr(self, 'codebook', New_Codebook_V)
+        self.codebook = New_Codebook_V
         bmu[1] = np.sqrt(bmu[1] + X2)
-        setattr(self, 'bmu', bmu)
+        self.bmu = bmu
 
     def grid_dist(self, bmu_ind):
         """
