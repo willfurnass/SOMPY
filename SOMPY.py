@@ -9,20 +9,13 @@
 
 import numpy as np
 from matplotlib import pyplot as plt
-import matplotlib.gridspec as gridspec
-import numexpr as ne
 from time import time
-import scipy.spatial as spdist
-import tables as tb
-import timeit
-import sys
 from scikits.learn.externals.joblib import Parallel, delayed, load, dump
 import tempfile
-import shutil
 import os
 import itertools
 from scipy.sparse import csr_matrix
-from scikits.learn.decomposition import RandomizedPCA, PCA
+from scikits.learn.decomposition import RandomizedPCA
 from scikits.learn import neighbors
 from matplotlib.colors import LogNorm
 from matplotlib import cm
